@@ -79,6 +79,10 @@ public class MainController implements FileLoaderHandler, FileSaverHandler {
 
             enableAllButtons();
             zoomProperty.set(leftImage.getRed().getWidth() / 4D);
+
+            if (paintIsOpen){
+                PaintController.instance.openPaint(rightImage);
+            }
         }
         setLight(0);
     }

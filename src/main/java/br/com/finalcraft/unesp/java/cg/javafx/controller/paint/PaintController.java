@@ -1,14 +1,27 @@
 package br.com.finalcraft.unesp.java.cg.javafx.controller.paint;
 
+import br.com.finalcraft.unesp.java.cg.JavaFXMain;
+import br.com.finalcraft.unesp.java.cg.data.colorutil.ColorUtil;
 import br.com.finalcraft.unesp.java.cg.data.image.ImageHelper;
 import br.com.finalcraft.unesp.java.cg.data.wrapper.ImgWrapper;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.geometry.Insets;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.ColorPicker;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.text.Font;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
 
+import javax.xml.soap.Text;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 
 public class PaintController {
@@ -17,6 +30,11 @@ public class PaintController {
 
     public ImgWrapper imgWrapper;
     public ImgWrapper imgWrapperBackUp;
+    public PaintTool toolBeingUsed = new PaintTool() {};
+
+    public Color theColor1 = new Color(0,0,0);
+    public Color theColor2 = new Color(255,255,255);
+    public int currentColorNumber = 1;
 
     public void openPaint(ImgWrapper imgWrapper){
         this.imgWrapper = imgWrapper;
@@ -24,15 +42,22 @@ public class PaintController {
 
         BufferedImage bufferedImage = ImageHelper.convertToBufferedImage(this.imgWrapper);
         updateImageOnly(bufferedImage);
+
+        color1.setStyle("-fx-background-color: " + String.format("#%06x", theColor1.getRGB() & 0xFFFFFF) + "; ");
+        color2.setStyle("-fx-background-color: " + String.format("#%06x", theColor2.getRGB() & 0xFFFFFF) + "; ");
     }
 
     public void updateImageOnly(BufferedImage bufferedImage){
         Image image = SwingFXUtils.toFXImage(bufferedImage, null);
-
         imageView.setImage(image);
 
         imageView.setFitWidth(image.getWidth());
         imageView.setFitHeight(image.getHeight());
+    }
+
+    public void updatePaintImage(){
+        BufferedImage bufferedImage = ImageHelper.convertToBufferedImage(this.imgWrapper);
+        updateImageOnly(bufferedImage);
     }
 
     @FXML
@@ -48,18 +73,177 @@ public class PaintController {
     private ImageView imageView;
 
     @FXML
+    private Button color1;
+
+    @FXML
+    private Button color2;
+
+    @FXML
     void onLine(ActionEvent event) {
 
     }
 
     @FXML
     void onPencil(ActionEvent event) {
+        System.out.println("Selecting Tool: Pencil");
+        toolBeingUsed = new PaintTool() {
+            @Override
+            public void onMouseDown(MouseEvent event) {
+                int xCoord = (int) event.getX();
+                int yCoord = (int) event.getY();
+                if (!imgWrapper.hasPixel(xCoord, yCoord)) return;
 
+                imgWrapper.setPixel(xCoord, yCoord, getTheCurrentColor());
+                System.out.println(String.format("Seting color at pixel [%d, %d] to (%d, %d, %d)", xCoord, yCoord, getTheCurrentColor().getRed(), getTheCurrentColor().getGreen(), getTheCurrentColor().getBlue()) );
+                updatePaintImage();
+            }
+
+            @Override
+            public void onMouseDragged(MouseEvent event) {
+                onMouseDown(event);
+            }
+
+            @Override
+            public void onMouseUP(MouseEvent event) {
+
+            }
+        };
     }
 
     @FXML
     void onRubber(ActionEvent event) {
 
+    }
+
+    @FXML
+    void onColorPicker(ActionEvent event) {
+        System.out.println("Selecting Tool: Color Picker");
+        toolBeingUsed = new PaintTool() {
+            @Override
+            public void onMouseDragged(MouseEvent event) {
+                int xCoord = (int) event.getX();
+                int yCoord = (int) event.getY();
+                if (!imgWrapper.hasPixel(xCoord, yCoord)) return;
+
+                int R = imgWrapper.getRed().getPixel(xCoord, yCoord);
+                int G = imgWrapper.getGreen().getPixel(xCoord, yCoord);
+                int B = imgWrapper.getBlue().getPixel(xCoord, yCoord);
+
+                Color color = new Color(R, G, B);
+
+                String hexColor = String.format("#%06x", color.getRGB() & 0xFFFFFF); //https://stackoverflow.com/questions/3607858/convert-a-rgb-color-value-to-a-hexadecimal-string
+                color1.setStyle("-fx-background-color: " + hexColor + "; ");
+            }
+
+            @Override
+            public void onMouseUP(MouseEvent event) {
+
+            }
+        };
+    }
+
+    private Stage colorPickerStage = null;
+    private ColorPicker colorPicker;
+    private javafx.scene.text.Text text;
+    public void showColorPicker(){
+        if (colorPickerStage == null){
+            colorPickerStage = new Stage();
+            colorPickerStage.initModality(Modality.WINDOW_MODAL);
+            // Defines a modal window that blocks events from being
+            // delivered to any other application window.
+            colorPickerStage.initOwner(JavaFXMain.primaryStage);
+
+            colorPickerStage.setTitle("ColorPicker");
+            Scene scene = new Scene(new HBox(20), 400, 100);
+            HBox box = (HBox) scene.getRoot();
+            box.setPadding(new Insets(5, 5, 5, 5));
+            colorPicker = new ColorPicker();
+            colorPicker.setValue(ColorUtil.toJavaFXColor(getTheCurrentColor()));
+
+            text = new javafx.scene.text.Text("Escolha uma cor!");
+            text.setFont(Font.font("Verdana", 20));
+            text.setFill(colorPicker.getValue());
+            box.getChildren().addAll(colorPicker, text);
+            colorPickerStage.setScene(scene);
+        }
+
+        colorPicker.setOnAction(event -> {
+            text.setFill(colorPicker.getValue());
+            if (currentColorNumber == 1){
+                theColor1 = ColorUtil.toAwtColor(colorPicker.getValue());
+                String hexColor = String.format("#%06x", theColor1.getRGB() & 0xFFFFFF);
+                color1.setStyle("-fx-background-color: " + hexColor + "; ");
+            }else{
+                theColor2 = ColorUtil.toAwtColor(colorPicker.getValue());
+                String hexColor = String.format("#%06x", theColor2.getRGB() & 0xFFFFFF);
+                color2.setStyle("-fx-background-color: " + hexColor + "; ");
+            }
+        });
+
+        colorPickerStage.show();
+    }
+
+    @FXML
+    void onMouseClickColor1(MouseEvent event) {
+        if (currentColorNumber == 1){
+            if (event.getClickCount() > 1){
+                showColorPicker();
+            }
+        }else {
+            currentColorNumber = 1;
+            color2.setOpacity(0.5);
+            color1.setOpacity(1);
+        }
+    }
+
+    @FXML
+    void onMouseClickColor2(MouseEvent event) {
+        if (currentColorNumber == 2){
+            if (event.getClickCount() > 1){
+
+            }
+        }else {
+            currentColorNumber = 2;
+            color1.setOpacity(0.5);
+            color2.setOpacity(1);
+        }
+    }
+
+    public Color getTheCurrentColor(){
+        if (currentColorNumber == 1){
+            return theColor1;
+        }else {
+            return theColor2;
+        }
+    }
+
+    //============================================================================
+    //Image View Manipulation
+    //============================================================================
+
+    @FXML
+    void onMouseMoved(MouseEvent event) {
+        if (true)return;
+        try {
+
+        }catch (Exception ignored){
+
+        }
+    }
+
+    @FXML
+    void onMouseDown(MouseEvent event) {
+        toolBeingUsed.onMouseDown(event);
+    }
+
+    @FXML
+    void onMouseDragged(MouseEvent event) {
+        toolBeingUsed.onMouseDragged(event);
+    }
+
+    @FXML
+    void onMouseUP(MouseEvent event) {
+        toolBeingUsed.onMouseUP(event);
     }
 
 }

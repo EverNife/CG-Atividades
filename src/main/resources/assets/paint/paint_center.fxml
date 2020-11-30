@@ -8,13 +8,14 @@
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.RowConstraints?>
 
-<BorderPane fx:id="borderPane" prefHeight="277.0" prefWidth="330.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="br.com.finalcraft.unesp.java.cg.javafx.controller.paint.PaintController">
+<BorderPane fx:id="borderPane" prefHeight="385.0" prefWidth="330.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="br.com.finalcraft.unesp.java.cg.javafx.controller.paint.PaintController">
    <left>
       <AnchorPane BorderPane.alignment="CENTER">
          <children>
-            <GridPane prefHeight="224.0" prefWidth="64.0">
+            <GridPane prefHeight="301.0" prefWidth="64.0">
               <columnConstraints>
                 <ColumnConstraints halignment="CENTER" hgrow="SOMETIMES" />
               </columnConstraints>
@@ -22,6 +23,8 @@
                 <RowConstraints vgrow="SOMETIMES" />
                   <RowConstraints vgrow="SOMETIMES" />
                   <RowConstraints vgrow="SOMETIMES" />
+                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
               </rowConstraints>
                <children>
                   <Button mnemonicParsing="false" onAction="#onPencil" prefHeight="42.0" prefWidth="42.0" textFill="#6f0000">
@@ -33,7 +36,7 @@
                         </ImageView>
                      </graphic>
                      <GridPane.margin>
-                        <Insets top="8.0" />
+                        <Insets />
                      </GridPane.margin>
                   </Button>
                   <Button mnemonicParsing="false" onAction="#onLine" prefHeight="42.0" prefWidth="42.0" textFill="#6f0000" GridPane.rowIndex="1">
@@ -45,7 +48,7 @@
                         </ImageView>
                      </graphic>
                      <GridPane.margin>
-                        <Insets top="8.0" />
+                        <Insets />
                      </GridPane.margin>
                   </Button>
                   <Button mnemonicParsing="false" onAction="#onRubber" prefHeight="42.0" prefWidth="42.0" textFill="#6f0000" GridPane.rowIndex="2">
@@ -57,15 +60,38 @@
                         </ImageView>
                      </graphic>
                      <GridPane.margin>
-                        <Insets top="8.0" />
+                        <Insets />
                      </GridPane.margin>
                   </Button>
+                  <Button mnemonicParsing="false" onAction="#onColorPicker" prefHeight="42.0" prefWidth="42.0" textFill="#6f0000" GridPane.rowIndex="3">
+                     <graphic>
+                        <ImageView fitHeight="26.0" fitWidth="31.0" pickOnBounds="true" preserveRatio="true">
+                           <image>
+                              <Image url="@../icons/paintbar.color-picker.png" />
+                           </image>
+                        </ImageView>
+                     </graphic>
+                  </Button>
+                  <HBox alignment="CENTER" GridPane.rowIndex="4">
+                     <children>
+                        <Button fx:id="color1" mnemonicParsing="false" onMouseClicked="#onMouseClickColor1" prefHeight="24.0" prefWidth="24.0" textFill="#6f0000">
+                           <opaqueInsets>
+                              <Insets />
+                           </opaqueInsets>
+                        </Button>
+                        <Button fx:id="color2" mnemonicParsing="false" onMouseClicked="#onMouseClickColor2" opacity="0.4" prefHeight="24.0" prefWidth="24.0" textFill="#6f0000">
+                           <HBox.margin>
+                              <Insets left="3.0" />
+                           </HBox.margin>
+                        </Button>
+                     </children>
+                  </HBox>
                </children>
             </GridPane>
          </children>
       </AnchorPane>
    </left>
    <center>
-      <ImageView fx:id="imageView" fitHeight="79.0" fitWidth="81.0" pickOnBounds="true" preserveRatio="true" BorderPane.alignment="CENTER" />
+      <ImageView fx:id="imageView" fitHeight="79.0" fitWidth="81.0" onDragOver="#onMouseDragged" onMouseDragged="#onMouseDragged" onMouseMoved="#onMouseMoved" onMousePressed="#onMouseDown" onMouseReleased="#onMouseUP" pickOnBounds="true" preserveRatio="true" BorderPane.alignment="CENTER" />
    </center>
 </BorderPane>

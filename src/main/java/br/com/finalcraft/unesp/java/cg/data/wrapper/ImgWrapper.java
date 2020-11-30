@@ -3,6 +3,7 @@ package br.com.finalcraft.unesp.java.cg.data.wrapper;
 import br.com.finalcraft.unesp.java.cg.data.colorutil.ColorUtil;
 import br.com.finalcraft.unesp.java.cg.data.ImgMatrix;
 
+import java.awt.*;
 import java.util.regex.Pattern;
 
 public class ImgWrapper {
@@ -45,6 +46,30 @@ public class ImgWrapper {
 
     public int getHeight(){
         return this.red.getHeight();
+    }
+
+    public boolean hasPixel(int widthCoord, int heightCoord){
+        return getRed().hasPixel(widthCoord, heightCoord);
+    }
+
+    public void setPixel(int widthCoord, int heightCoord, Color color){
+        setPixel(widthCoord, heightCoord, color.getRed(), color.getGreen(), color.getBlue());
+    }
+
+    public int[] getRGB(int widthCoord, int heightCoord){
+        int red = getRed().getPixel(widthCoord, heightCoord);
+        if (isBlackAndWhite()){
+            return new int[]{red, red, red};
+        }
+        return new int[]{red, getGreen().getPixel(widthCoord, heightCoord), blue.getPixel(widthCoord, heightCoord)};
+    }
+
+    public void setPixel(int widthCoord, int heightCoord, int r, int g, int b){
+        getRed().setPixel(widthCoord, heightCoord, r);
+        if (!isBlackAndWhite()){
+            getGreen().setPixel(widthCoord, heightCoord, g);
+            getBlue().setPixel(widthCoord, heightCoord, b);
+        }
     }
 
     public ImgWrapper add(ImgWrapper other){
