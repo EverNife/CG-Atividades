@@ -1,5 +1,7 @@
 package br.com.finalcraft.unesp.java.cg.data.colorutil;
 
+import java.awt.*;
+
 public class ColorUtil {
 
     public static int INTERN_BOUNDS = 50;
@@ -30,4 +32,20 @@ public class ColorUtil {
         return new double[]{r, g, b};
     }
 
+    //Reference https://stackoverflow.com/questions/30466405/java-convert-java-awt-color-to-javafx-scene-paint-color
+    public static javafx.scene.paint.Color toJavaFXColor(Color awtColor){
+        int r = awtColor.getRed();
+        int g = awtColor.getGreen();
+        int b = awtColor.getBlue();
+        int a = awtColor.getAlpha();
+        double opacity = a / 255.0 ;
+        return javafx.scene.paint.Color.rgb(r, g, b, opacity);
+    }
+
+    public static Color toAwtColor(javafx.scene.paint.Color jfxColor){
+        return new java.awt.Color((float) jfxColor.getRed(),
+                (float) jfxColor.getGreen(),
+                (float) jfxColor.getBlue(),
+                (float) jfxColor.getOpacity());
+    }
 }
