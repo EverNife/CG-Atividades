@@ -1,6 +1,7 @@
 package br.com.finalcraft.unesp.java.cg.javafx.controller.paint;
 
 import br.com.finalcraft.unesp.java.cg.JavaFXMain;
+import br.com.finalcraft.unesp.java.cg.data.MathUtil;
 import br.com.finalcraft.unesp.java.cg.data.colorutil.ColorUtil;
 import br.com.finalcraft.unesp.java.cg.data.image.ImageHelper;
 import br.com.finalcraft.unesp.java.cg.data.wrapper.ImgWrapper;
@@ -20,9 +21,9 @@ import javafx.scene.text.Font;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
-import javax.xml.soap.Text;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.util.List;
 
 public class PaintController {
 
@@ -80,7 +81,47 @@ public class PaintController {
 
     @FXML
     void onLine(ActionEvent event) {
+        System.out.println("Selecting Tool: Line");
+        toolBeingUsed = new PaintTool() {
+            int downX = 0;
+            int downY = 0;
+            boolean dragStart;
+            @Override
+            public void onMouseDown(MouseEvent event) {
+                int xCoord = (int) event.getX();
+                int yCoord = (int) event.getY();
+                if (!imgWrapper.hasPixel(xCoord, yCoord)) return;
 
+                dragStart = true;
+                downX = xCoord;
+                downY = yCoord;
+                System.out.println(String.format("Selection Position at [%d, %d] as line Start.", xCoord, yCoord) );
+            }
+
+            @Override
+            public void onMouseDragged(MouseEvent event) {
+            }
+
+            @Override
+            public void onMouseUP(MouseEvent event) {
+                if (dragStart){
+                    dragStart = false;
+
+                    int xCoord = (int) event.getX();
+                    int yCoord = (int) event.getY();
+                    if (!imgWrapper.hasPixel(xCoord, yCoord)) return;
+
+                    List<Integer[]> pixelsToPaint = MathUtil.getAllPixelsBetween(downX, downY, xCoord, yCoord);
+
+                    for (Integer[] cords : pixelsToPaint) {
+                        imgWrapper.setPixel(cords[0], cords[1], getTheCurrentColor());
+                    }
+                    System.out.println(String.format("Selection Position at [%d, %d] as line End.", xCoord, yCoord) );
+                    System.out.println(String.format("Total of %d pixels colored!",  pixelsToPaint.size()));
+                    updatePaintImage();
+                }
+            }
+        };
     }
 
     @FXML
@@ -96,16 +137,41 @@ public class PaintController {
                 imgWrapper.setPixel(xCoord, yCoord, getTheCurrentColor());
                 System.out.println(String.format("Seting color at pixel [%d, %d] to (%d, %d, %d)", xCoord, yCoord, getTheCurrentColor().getRed(), getTheCurrentColor().getGreen(), getTheCurrentColor().getBlue()) );
                 updatePaintImage();
+
+                dragStart = true;
+                downX = xCoord;
+                downY = yCoord;
             }
+
+            int downX = 0;
+            int downY = 0;
+            boolean dragStart;
 
             @Override
             public void onMouseDragged(MouseEvent event) {
-                onMouseDown(event);
+                if (dragStart){
+                    int xCoord = (int) event.getX();
+                    int yCoord = (int) event.getY();
+                    if (!imgWrapper.hasPixel(xCoord, yCoord)) return;
+
+                    List<Integer[]> pixelsToPaint = MathUtil.getAllPixelsBetween(downX, downY, xCoord, yCoord);
+                    for (Integer[] cords : pixelsToPaint) {
+                        imgWrapper.setPixel(cords[0], cords[1], getTheCurrentColor());
+                        System.out.println(String.format("Seting color at pixel [%d, %d] to (%d, %d, %d)", cords[0], cords[1], getTheCurrentColor().getRed(), getTheCurrentColor().getGreen(), getTheCurrentColor().getBlue()) );
+                    }
+
+                    downX = xCoord;
+                    downY = yCoord;
+                    updatePaintImage();
+                }
             }
 
             @Override
             public void onMouseUP(MouseEvent event) {
-
+                if (dragStart){
+                    dragStart = false;
+                    onMouseDragged(event);
+                }
             }
         };
     }

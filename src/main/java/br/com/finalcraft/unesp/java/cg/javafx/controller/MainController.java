@@ -292,6 +292,9 @@ public class MainController implements FileLoaderHandler, FileSaverHandler {
         this.rightImage = this.leftImage.clone();
         this.rightImageBackUp = this.leftImage.clone();
         setLight(0);
+        if (paintIsOpen){
+            PaintController.instance.openPaint(rightImage);
+        }
     }
 
     @FXML
@@ -312,7 +315,10 @@ public class MainController implements FileLoaderHandler, FileSaverHandler {
         }else {
             buttomOpenPaint.setText("Abrir Modo Paint");
             buttomOpenPaint.setTextFill(Color.valueOf("#16900d"));
+            this.rightImage = PaintController.instance.imgWrapper;
+            this.rightImageBackUp = rightImage.clone();
             this.borderPane.setCenter(this.centerHBox);
+            setLight(0);
         }
         paintIsOpen = !paintIsOpen;
     }
