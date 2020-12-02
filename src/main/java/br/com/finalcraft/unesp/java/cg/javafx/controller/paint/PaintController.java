@@ -4,7 +4,6 @@ import br.com.finalcraft.unesp.java.cg.JavaFXMain;
 import br.com.finalcraft.unesp.java.cg.data.MathUtil;
 import br.com.finalcraft.unesp.java.cg.data.colorutil.ColorUtil;
 import br.com.finalcraft.unesp.java.cg.data.image.ImageHelper;
-import br.com.finalcraft.unesp.java.cg.data.wrapper.ImgWrapper;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -21,6 +20,8 @@ import javafx.scene.text.Font;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
+import static br.com.finalcraft.unesp.java.cg.javafx.controller.MainController.rightImage;
+
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.List;
@@ -29,24 +30,11 @@ public class PaintController {
 
     public static PaintController instance;
 
-    public ImgWrapper imgWrapper;
-    public ImgWrapper imgWrapperBackUp;
     public PaintTool toolBeingUsed = new PaintTool() {};
 
     public Color theColor1 = new Color(0,0,0);
-    public Color theColor2 = new Color(255,255,255);
+    public Color theColor2 = new Color(200,255,255);
     public int currentColorNumber = 1;
-
-    public void openPaint(ImgWrapper imgWrapper){
-        this.imgWrapper = imgWrapper;
-        this.imgWrapperBackUp = imgWrapper.clone();
-
-        BufferedImage bufferedImage = ImageHelper.convertToBufferedImage(this.imgWrapper);
-        updateImageOnly(bufferedImage);
-
-        color1.setStyle("-fx-background-color: " + String.format("#%06x", theColor1.getRGB() & 0xFFFFFF) + "; ");
-        color2.setStyle("-fx-background-color: " + String.format("#%06x", theColor2.getRGB() & 0xFFFFFF) + "; ");
-    }
 
     public void updateImageOnly(BufferedImage bufferedImage){
         Image image = SwingFXUtils.toFXImage(bufferedImage, null);
@@ -57,7 +45,7 @@ public class PaintController {
     }
 
     public void updatePaintImage(){
-        BufferedImage bufferedImage = ImageHelper.convertToBufferedImage(this.imgWrapper);
+        BufferedImage bufferedImage = ImageHelper.convertToBufferedImage(rightImage);
         updateImageOnly(bufferedImage);
     }
 
@@ -65,6 +53,9 @@ public class PaintController {
     void initialize() {
         instance = this;
         imageView.setPreserveRatio(true);
+
+        color1.setStyle("-fx-background-color: " + String.format("#%06x", theColor1.getRGB() & 0xFFFFFF) + "; ");
+        color2.setStyle("-fx-background-color: " + String.format("#%06x", theColor2.getRGB() & 0xFFFFFF) + "; ");
     }
 
     @FXML
@@ -90,7 +81,7 @@ public class PaintController {
             public void onMouseDown(MouseEvent event) {
                 int xCoord = (int) event.getX();
                 int yCoord = (int) event.getY();
-                if (!imgWrapper.hasPixel(xCoord, yCoord)) return;
+                if (!rightImage.hasPixel(xCoord, yCoord)) return;
 
                 dragStart = true;
                 downX = xCoord;
@@ -109,12 +100,12 @@ public class PaintController {
 
                     int xCoord = (int) event.getX();
                     int yCoord = (int) event.getY();
-                    if (!imgWrapper.hasPixel(xCoord, yCoord)) return;
+                    if (!rightImage.hasPixel(xCoord, yCoord)) return;
 
                     List<Integer[]> pixelsToPaint = MathUtil.getAllPixelsBetween(downX, downY, xCoord, yCoord);
 
                     for (Integer[] cords : pixelsToPaint) {
-                        imgWrapper.setPixel(cords[0], cords[1], getTheCurrentColor());
+                        rightImage.setPixel(cords[0], cords[1], getTheCurrentColor());
                     }
                     System.out.println(String.format("Selection Position at [%d, %d] as line End.", xCoord, yCoord) );
                     System.out.println(String.format("Total of %d pixels colored!",  pixelsToPaint.size()));
@@ -132,9 +123,9 @@ public class PaintController {
             public void onMouseDown(MouseEvent event) {
                 int xCoord = (int) event.getX();
                 int yCoord = (int) event.getY();
-                if (!imgWrapper.hasPixel(xCoord, yCoord)) return;
+                if (!rightImage.hasPixel(xCoord, yCoord)) return;
 
-                imgWrapper.setPixel(xCoord, yCoord, getTheCurrentColor());
+                rightImage.setPixel(xCoord, yCoord, getTheCurrentColor());
                 System.out.println(String.format("Seting color at pixel [%d, %d] to (%d, %d, %d)", xCoord, yCoord, getTheCurrentColor().getRed(), getTheCurrentColor().getGreen(), getTheCurrentColor().getBlue()) );
                 updatePaintImage();
 
@@ -147,17 +138,33 @@ public class PaintController {
             int downY = 0;
             boolean dragStart;
 
+            long pixelsThisSecond = 0;
+            long lastPixelsWarn = 0;
+            boolean haltWarn = false;
             @Override
             public void onMouseDragged(MouseEvent event) {
                 if (dragStart){
                     int xCoord = (int) event.getX();
                     int yCoord = (int) event.getY();
-                    if (!imgWrapper.hasPixel(xCoord, yCoord)) return;
+                    if (!rightImage.hasPixel(xCoord, yCoord)) return;
 
                     List<Integer[]> pixelsToPaint = MathUtil.getAllPixelsBetween(downX, downY, xCoord, yCoord);
                     for (Integer[] cords : pixelsToPaint) {
-                        imgWrapper.setPixel(cords[0], cords[1], getTheCurrentColor());
-                        System.out.println(String.format("Seting color at pixel [%d, %d] to (%d, %d, %d)", cords[0], cords[1], getTheCurrentColor().getRed(), getTheCurrentColor().getGreen(), getTheCurrentColor().getBlue()) );
+                        rightImage.setPixel(cords[0], cords[1], getTheCurrentColor());
+                        if (pixelsThisSecond < 5){
+                            System.out.println(String.format("Seting color at pixel [%d, %d] to (%d, %d, %d)", cords[0], cords[1], getTheCurrentColor().getRed(), getTheCurrentColor().getGreen(), getTheCurrentColor().getBlue()) );
+                        }else{
+                            if (System.currentTimeMillis() - lastPixelsWarn > 1000){
+                                lastPixelsWarn = System.currentTimeMillis();
+                                pixelsThisSecond = 0;
+                                haltWarn = false;
+                            }
+                            else if (!haltWarn){
+                                haltWarn = true;
+                                System.out.println("Halting pixel painting log to prevent interface lag!");
+                            }
+                        }
+                        pixelsThisSecond++;
                     }
 
                     downX = xCoord;
@@ -189,21 +196,21 @@ public class PaintController {
             public void onMouseDragged(MouseEvent event) {
                 int xCoord = (int) event.getX();
                 int yCoord = (int) event.getY();
-                if (!imgWrapper.hasPixel(xCoord, yCoord)) return;
+                if (!rightImage.hasPixel(xCoord, yCoord)) return;
 
-                int R = imgWrapper.getRed().getPixel(xCoord, yCoord);
-                int G = imgWrapper.getGreen().getPixel(xCoord, yCoord);
-                int B = imgWrapper.getBlue().getPixel(xCoord, yCoord);
+                int R = rightImage.getRed().getPixel(xCoord, yCoord);
+                int G = rightImage.getGreen().getPixel(xCoord, yCoord);
+                int B = rightImage.getBlue().getPixel(xCoord, yCoord);
 
                 Color color = new Color(R, G, B);
 
-                String hexColor = String.format("#%06x", color.getRGB() & 0xFFFFFF); //https://stackoverflow.com/questions/3607858/convert-a-rgb-color-value-to-a-hexadecimal-string
-                color1.setStyle("-fx-background-color: " + hexColor + "; ");
-            }
-
-            @Override
-            public void onMouseUP(MouseEvent event) {
-
+                if (currentColorNumber == 1){
+                    color1.setStyle("-fx-background-color: " + String.format("#%06x", color.getRGB() & 0xFFFFFF) + "; ");
+                    theColor1 = color;
+                }else {
+                    color2.setStyle("-fx-background-color: " + String.format("#%06x", color.getRGB() & 0xFFFFFF) + "; ");
+                    theColor2 = color;
+                }
             }
         };
     }
@@ -266,7 +273,7 @@ public class PaintController {
     void onMouseClickColor2(MouseEvent event) {
         if (currentColorNumber == 2){
             if (event.getClickCount() > 1){
-
+                showColorPicker();
             }
         }else {
             currentColorNumber = 2;

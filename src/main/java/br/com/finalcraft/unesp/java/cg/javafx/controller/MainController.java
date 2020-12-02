@@ -81,7 +81,7 @@ public class MainController implements FileLoaderHandler, FileSaverHandler {
             zoomProperty.set(leftImage.getRed().getWidth() / 4D);
 
             if (paintIsOpen){
-                PaintController.instance.openPaint(rightImage);
+                PaintController.instance.updatePaintImage();
             }
         }
         setLight(0);
@@ -293,7 +293,7 @@ public class MainController implements FileLoaderHandler, FileSaverHandler {
         this.rightImageBackUp = this.leftImage.clone();
         setLight(0);
         if (paintIsOpen){
-            PaintController.instance.openPaint(rightImage);
+            PaintController.instance.updatePaintImage();
         }
     }
 
@@ -311,11 +311,10 @@ public class MainController implements FileLoaderHandler, FileSaverHandler {
             buttomOpenPaint.setText("Fechar Modo Paint");
             buttomOpenPaint.setTextFill(Color.valueOf("#d62e99"));
             this.borderPane.setCenter(PaintController.instance.borderPane);
-            PaintController.instance.openPaint(rightImage);
+            PaintController.instance.updatePaintImage();
         }else {
             buttomOpenPaint.setText("Abrir Modo Paint");
             buttomOpenPaint.setTextFill(Color.valueOf("#16900d"));
-            this.rightImage = PaintController.instance.imgWrapper;
             this.rightImageBackUp = rightImage.clone();
             this.borderPane.setCenter(this.centerHBox);
             setLight(0);
