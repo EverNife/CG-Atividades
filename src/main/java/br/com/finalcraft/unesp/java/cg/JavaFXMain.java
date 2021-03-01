@@ -19,7 +19,7 @@ public class JavaFXMain extends Application {
         MyFXMLs.loadUpFiles();
 
         JavaFXMain.primaryStage = primaryStage;
-        JavaFXMain.primaryStage.setTitle("Processamento Digital de Imagens  - 2020");
+        JavaFXMain.primaryStage.setTitle("Computação Gráfica - 2020");
 
         initRootLayout();
 
